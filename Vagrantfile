@@ -10,6 +10,7 @@ SCRIPT
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/bionic64"
+  
 
   config.vm.provider "virtualbox" do |vb|
     vb.memory = 1024
@@ -18,29 +19,14 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "mysqlserver" do |mysqlserver|
     mysqlserver.vm.network "private_network", ip: "192.168.56.10"
-
+    mysqlserver.vm.network "forwarded_port", guest: 3306, host: 3306
     mysqlserver.vm.provider "virtualbox" do |vb|
-      vb.name = "mysqlserver"
+    mysqlserver.name = "mysqlserver"
+	config.vm.synced_folder ".", "/vagrant"
     end
 
     mysqlserver.vm.provision "shell", inline: $script_mysql
   end
 
-  config.vm.define "springapp" do |springapp|
-    springapp.vm.network "private_network", ip: "192.168.56.14"
-    springapp.vm.network "forwarded_port", guest: 3306, host: 3306
-
-    springapp.vm.provider "virtualbox" do |vb|
-      vb.name = "springapp"
-      vb.memory = 4096
-      vb.cpus = 2
-    end
-
-    springapp.vm.provision "shell", inline: "apt-get update && apt-get install -y openjdk-11-jre unzip"
-    springapp.vm.provision "shell", inline: "unzip -o /vagrant/springapp/springapp.zip -d /srv"
-    springapp.vm.provision "shell", inline: "mkdir -p /var/log/springapp"
-    springapp.vm.provision "shell", inline: "cp /vagrant/springapp/springapp.service /etc/systemd/system/springapp.service"
-    springapp.vm.provision "shell", inline: "sudo systemctl start springapp.service"
-    springapp.vm.provision "shell", inline: "sudo systemctl enable springapp.service"
-  end
+  
 end
